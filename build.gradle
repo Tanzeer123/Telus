@@ -1,0 +1,128 @@
+apply plugin: 'idea'
+apply plugin: 'java'
+
+sourceCompatibility = 1.12
+targetCompatibility = 1.12
+
+buildscript {
+    repositories {
+        maven {
+            url ''
+        }
+    }
+    dependencies {
+        classpath 'gradle.plugin.nl.javadude.gradle.plugins:license-gradle-plugin:0.12.1'
+    }
+}
+
+repositories {
+    maven {
+        url ''
+    }
+}
+
+test {
+    // enable TestNG support (default is JUnit)
+    useTestNG()
+    scanForTestClasses = false
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir 'src/main/java'
+            srcDir 'src/Utility/java'
+        }
+        resources {
+            srcDir 'src/main/resources'
+        }
+        test {
+            java { srcDir 'src/test/java' }
+        }
+    }
+}
+
+
+tasks.withType(Test) {
+    scanForTestClasses = false
+}
+
+ext.testngsuite = project.hasProperty("testngsuite") ? project.property("testngsuite") : 'TestNG.xml'
+ext.cibuild = project.hasProperty("cibuild") ? project.property("cibuild") : 'No'
+ext.numoftests = project.hasProperty("numoftests") ? project.property("numoftests") : 'ALL'
+ext.username = project.hasProperty("username") ? project.property("username") : 'null'
+ext.password = project.hasProperty("password") ? project.property("password") : 'null'
+ext.datasource = project.hasProperty("datasource") ? project.property("datasource") : 'db'
+ext.sboxnum = project.hasProperty("sboxnum") ? project.property("sboxnum") : '45'
+
+String taskname = gradle.startParameter.taskNames
+
+if ((taskname == '[testTest]')) {
+    println "test loop"
+    copy {
+        from "src/main/environment/Test"
+        into "src/main/resources"
+        include "**/*"
+    }
+}
+
+task testTest(type: GradleBuild) {
+    startParameter.projectProperties = project.getGradle().getStartParameter().getProjectProperties()
+    tasks = ["clean", "assemble", "runTests"]
+}
+
+task runTests(type: JavaExec, dependsOn: 'classes') {
+
+    systemProperty 'datasource', datasource
+    systemProperty 'numofTests', numoftests
+    systemProperty 'sboxnum', sboxnum
+
+    if (((cibuild.toUpperCase()) == 'YES') || ((cibuild.toUpperCase()) == 'Y') || ((cibuild.toUpperCase()) == 'TRUE')) {
+        systemProperty 'CIBuild', 'True'
+        systemProperty 'CIusername', username
+        systemProperty 'CIpassword', password
+    } else {
+        systemProperty 'CIBuild', 'False'
+    }
+
+
+    main = 'org.testng.TestNG'
+    classpath = files("./src/test/resources",
+            sourceSets.main.compileClasspath,
+            sourceSets.test.compileClasspath,
+            sourceSets.main.runtimeClasspath,
+            sourceSets.test.runtimeClasspath)
+    String suitePath = "./src/test/resources/"
+    String TestNGsuite = suitePath + testngsuite
+    args = ["-parallel", "methods", "-threadcount", "3", "-d", "./build/test-output", TestNGsuite]
+}
+
+dependencies {
+
+    compile 'io.rest-assured:rest-assured:4.0.0'
+    compile 'io.rest-assured:json-path:4.0.0'
+    compile group: 'com.fasterxml', name: 'jackson-module-json-org', version: '0.9.1'
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.5.4'
+    compile group: 'org.testng', name: 'testng', version: '6.9.10'
+    compile group: 'com.relevantcodes', name: 'extentreports', version: '2.41.1'
+    compile group: 'com.aventstack', name: 'extentreports', version: '3.1.5'
+    compile group: 'junit', name: 'junit', version: '4.12'
+    compile group: 'org.seleniumhq.selenium', name: 'selenium-chrome-driver', version: '3.141.59'
+    compile group: 'org.seleniumhq.selenium', name: 'selenium-api', version: '3.141.59'
+    compile group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '3.141.59'
+    compile group: 'org.apache.poi', name: 'poi', version: '3.17'
+    compile group: 'org.apache.poi', name: 'poi-ooxml', version: '3.17'
+    compile group: 'org.apache.commons', name: 'commons-io', version: '1.3.2'
+    compile group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1'
+    compile group: 'com.oracle', name: 'ojdbc6', version: '11.2.0.4'
+    compile group: 'com.microsoft.sqlserver', name: 'sqljdbc4', version: '4.0'
+    compile group: 'joda-time', name: 'joda-time', version: '2.9.4'
+    testCompile group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '3.141.59'
+    testCompile group: 'org.seleniumhq.selenium', name: 'selenium-chrome-driver', version: '3.141.59'
+    testCompile group: 'org.seleniumhq.selenium', name: 'selenium-api', version: '3.141.59'
+    testCompile group: 'org.apache.poi', name: 'poi', version: '3.17'
+    testCompile group: 'org.apache.poi', name: 'poi-ooxml', version: '3.17'
+    testCompile group: 'com.microsoft.sqlserver', name: 'sqljdbc4', version: '4.0'
+    implementation group: 'io.github.bonigarcia', name: 'webdrivermanager', version: '4.4.1'
+
+}

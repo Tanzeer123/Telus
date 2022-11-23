@@ -1,0 +1,55 @@
+
+ Compiled source #
+**/*.class
+
+# Logs #
+**/*.log
+
+# Packages #
+**/*.war
+**/*.tar
+
+
+# Anything in build/target directories #
+**/build
+**/target
+
+
+# IntelliJ specific files/directories #
+**/.idea
+**/*.ipr
+**/*.iws
+**/*.iml
+**/atlassian-ide-plugin.xml
+
+# Eclipse specific files/directories #
+**/.classpath
+**/.project
+**/.settings
+**/.metadata
+
+# NetBeans specific files/directories #
+**/.nbattrs
+
+#gradle
+**/.gradle
+
+#classes
+/classes
+
+
+
+#Test ouput
+/test-report
+/failedTestsScreenshots
+
+#Test ouput
+/out
+
+
+#config.properties in src/main/resources
+/src/main/resources/config.properties
+.DS_Store
+/bin/
+/test-output/
+/-ea -DCIBuild=False -DCIusername= -DCIpassword=/
